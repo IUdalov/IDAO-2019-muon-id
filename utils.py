@@ -46,6 +46,19 @@ def load_train_hdf(path):
         pd.read_hdf(os.path.join(path, "train_part_%i_%s.hdf" % (i, VERSION)))
         for i in (1, 2)], axis=0, ignore_index=True)
 
+def load_test_hdf(path):
+    return pd.read_hdf(os.path.join(path, "test_public_%s.hdf" % VERSION))
+
+def add_foi_mmm(ds):
+    new_features = []
+    for column in FOI_COLUMNS:
+        print("Adding", column)
+        for (fname, f) in [("min", np.min), ("mean", np.mean), ("max", np.max)]:
+            new_name = "%s_%s" % (column, fname)
+            new_features.append(new_name)
+            ds.insert(loc=len(ds.columns), column=new_name, value=ds[column].apply(f), allow_duplicates=True)
+            
+    return ds, new_features
 
 def load_data_csv(path, feature_columns):
     train = pd.concat([
